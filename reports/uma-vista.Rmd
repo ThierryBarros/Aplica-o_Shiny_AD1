@@ -1,0 +1,192 @@
+---
+title: "Idas e vindas dos nomes das vias"
+output:
+    html_document:
+    df_print: paged
+theme: sandstone
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+library(viridis)
+library(colourlovers)
+library(skimr)
+
+source(here::here("code/theme_report.R"))
+source(here::here("code/read_wrangle.R"))
+
+theme_set(theme_report())
+knitr::opts_chunk$set(tidy = FALSE,
+                      fig.width = 6,
+                      fig.height = 5,
+                      echo = FALSE)
+options(scipen = 999)
+
+# usando http://www.colourlovers.com/
+paleta = clpalette('1930') %>% swatch() %>% unlist()
+```
+
+```{r read}
+vias = read_wrangle_data()
+glimpse(vias)
+skimr::skim(vias)
+```
+
+## Quais as ruas mais longas da cidade? 
+
+```{r}
+vias %>% 
+    arrange(-comprimento) %>% 
+    slice(1:15) %>% 
+    ggplot(aes(x = reorder(nomelograd, comprimento), 
+               y = comprimento / 1000)) + 
+    geom_point(color = paleta[4], size = 3, shape = 15) + 
+    coord_flip() + 
+    labs(
+        title = "Ruas mais longas", 
+        subtitle = "Top 15", 
+        x = "", 
+        y = "Comprimento em km"
+    )
+```
+
+## Árvores
+
+```{r}
+vias %>% 
+    ggplot(aes(x = arvores_100m_mean)) + 
+    geom_histogram(binwidth = 1, 
+                   boundary = 0,
+                   color = paleta[4], 
+                   fill = "white") + 
+    labs(
+        title = "Distribuição do número médio de árvores", 
+        subtitle = "Contando a cada 100m", 
+        x = "Árvores por 100m (média)", 
+        y = "Número de ruas"
+    ) 
+    
+
+```
+
+## Profissões mais comuns
+
+```{r}
+vias %>% 
+    filter(!is.na(profissao)) %>% 
+    count(profissao) %>% 
+    ggplot(aes(x = reorder(profissao, n), 
+               y = n)) + 
+    geom_col(fill = paleta[3], color = paleta[1], width = .75) + 
+    coord_flip() + 
+    labs(
+        title = "Profissões mais homenageadas", 
+        subtitle = "", 
+        x = ""
+    )
+```
+
+```{r}
+vias %>% 
+    filter(!is.na(profissao)) %>% 
+    group_by(profissao) %>% 
+    summarise(km_homenagem = sum(comprimento)/1000) %>% 
+    ggplot(aes(x = reorder(profissao, km_homenagem), 
+               y = km_homenagem)) + 
+    geom_col(fill = paleta[3], color = paleta[1], width = .75) + 
+    coord_flip() + 
+    labs(
+        title = "Profissões mais homenageadas", 
+        subtitle = "Em KM de vias", 
+        y = "kms de homenagem",
+        x = ""
+    )
+```
+
+
+```{r warning=FALSE}
+p = vias %>% 
+    filter(!is.na(profissao)) %>% 
+    group_by(profissao) %>% 
+    summarise(km_homenagem = sum(comprimento)/1000, 
+              num_homenagens = n()) %>% 
+    ggplot(aes(x = num_homenagens, 
+               y = km_homenagem, 
+               label = profissao)) + 
+    geom_point() + 
+    labs(
+        title = "Profissões mais homenageadas", 
+        subtitle = "quantidade x kms", 
+        y = "kms de homenagem",
+        x = "número de homenagens"
+    )
+
+plotly::ggplotly(p)
+```
+
+
+## Nomes homenageados
+
+```{r}
+vias %>% 
+    filter(!is.na(primeiro_nome), primeiro_nome != "") %>% 
+    count(primeiro_nome) %>% 
+    filter(n >= 10, 
+           !(primeiro_nome %in% c("Sem", 
+                                  "Proj", 
+                                  "Projetada", 
+                                  "República"))) %>% 
+    ggplot(aes(x = reorder(primeiro_nome, n), 
+               y = n)) + 
+    geom_col(fill = paleta[5], width = .7) + 
+    coord_flip() + 
+    labs(
+        title = "Nomes mais homenageados", 
+        subtitle = "", 
+        x = ""
+    )
+```
+
+
+
+```{r}
+vias %>% 
+    filter(!is.na(sobrenome)) %>% 
+    count(sobrenome) %>% 
+    filter(n >= 15, 
+           !(sobrenome %in% c("Bodocongo", "Proj", "Projetada"))) %>% 
+    ggplot(aes(x = reorder(sobrenome, n), 
+               y = n)) + 
+    geom_col(fill = paleta[4], width = .7) + 
+    coord_flip() + 
+    labs(
+        title = "Sobrenomes mais homenageados", 
+        subtitle = "Apenas sobrenomes em ao menos 15 vias", 
+        x = "", 
+        y = "Número de vias com o sobrenome"
+    )
+
+```
+
+```{r}
+vias %>% 
+    filter(!is.na(sobrenome),
+           !(sobrenome %in% c("Bodocongo", "Proj", "Projetada"))) %>% 
+    group_by(sobrenome) %>% 
+    summarise(km_homenagem = sum(comprimento)/1000) %>% 
+    arrange(-km_homenagem) %>% 
+    slice(1:15) %>% 
+    ggplot(aes(x = reorder(sobrenome, km_homenagem), 
+               y = km_homenagem)) + 
+    geom_col(fill = paleta[4], width = .7) + 
+    coord_flip() + 
+    labs(
+        title = "Sobrenomes mais homenageados", 
+        subtitle = "Apenas sobrenomes em ao menos 15 vias", 
+        x = "", 
+        y = "KM de vias com o sobrenome"
+    )
+
+```
+
