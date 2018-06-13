@@ -10,8 +10,9 @@ theme: sandstone
 library(tidyverse)
 library(here)
 library(viridis)
-library(colourlovers)
-library(skimr)
+
+library(ggplot2)
+library(plotly)
 
 source(here::here("code/theme_report.R"))
 source(here::here("code/read_wrangle.R"))
@@ -24,11 +25,12 @@ knitr::opts_chunk$set(tidy = FALSE,
 options(scipen = 999)
 
 # usando http://www.colourlovers.com/
-paleta = clpalette('1930') %>% swatch() %>% unlist()
+
+
 ```
 
 ```{r read}
-vias = read_wrangle_data()
+vias = read_wrangle_data() %>
 glimpse(vias)
 skimr::skim(vias)
 ```

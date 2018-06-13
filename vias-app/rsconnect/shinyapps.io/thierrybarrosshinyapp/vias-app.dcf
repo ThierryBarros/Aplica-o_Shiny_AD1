@@ -1,0 +1,12 @@
+name: vias-app
+title: vias-app
+username:
+account: thierrybarrosshinyapp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 360155
+bundleId: 1426772
+url: https://thierrybarrosshinyapp.shinyapps.io/vias-app/
+when: 1528872065.5068
+asMultiple: FALSE
+asStatic: FALSE
